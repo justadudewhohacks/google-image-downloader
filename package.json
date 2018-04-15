@@ -1,0 +1,21 @@
+{
+  "name": "google-image-downloader",
+  "version": "0.0.0",
+  "description": "Query google images and download images in original size.",
+  "main": "./lib/ImageDownloader.ts",
+  "dependencies": {
+    "@types/cheerio": "^0.22.7",
+    "@types/md5": "^2.1.32",
+    "@types/request": "^2.47.0",
+    "cheerio": "^1.0.0-rc.2",
+    "md5": "^2.2.1",
+    "request": "^2.85.0"
+  },
+  "keywords": [
+    "google",
+    "image",
+    "download"
+  ],
+  "author": "justadudewhohacks",
+  "license": "MIT"
+}

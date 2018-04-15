@@ -16,9 +16,9 @@ const extensions = ['png', 'jpeg', 'jpg']
 function extractFilenameAndExtensionFromUri(uri: string): FilenameAndExt {
   function tryFileExtension(ext: string): FilenameAndExt | null {
     const pieces = uri.split(new RegExp(ext, 'i'))
-    if (pieces.length > 1) {
-      return { filename: `${md5(pieces[0])}`, ext }
-    }
+    return pieces.length > 1
+      ? { filename: `${md5(pieces[0])}`, ext }
+      : null
   }
 
   return extensions
@@ -27,9 +27,9 @@ function extractFilenameAndExtensionFromUri(uri: string): FilenameAndExt {
     || { filename: md5(uri) }
 }
 
-function addIndex(index, query: string, uri: string, file: string) {
+function addIndex(index: any, query: string, uri: string, file: string) {
   const entryForQuery = index[query] || []
-  if (!entryForQuery.some(q => q.uri === uri)) {
+  if (!entryForQuery.some((q: any) => q.uri === uri)) {
     index[query] = entryForQuery.concat({ uri, file })
   }
 }
@@ -88,7 +88,7 @@ export class ImageDownloader {
         const $ = cheerio.load(res.body)
 
         const imgUris = Array.from(
-          $('div.rg_meta').map((i, el) =>  JSON.parse(el.children[0].data).ou)
+          $('div.rg_meta').map((_, el) =>  JSON.parse((el.children[0].data || '')).ou)
         ) as any as string[]
 
         const newImgUris = imgUris.filter(uri => !this.haveImage(uri)).slice(0, maxImages)

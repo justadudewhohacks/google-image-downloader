@@ -31,7 +31,7 @@ export class FileHandler {
     return path.resolve(this.rootDir, 'output', 'images')
   }
 
-  persistIndexFile(index) {
+  persistIndexFile(index: any) {
     fs.writeFileSync(this.getIndexFilePath(), JSON.stringify(index))
   }
 

@@ -1,4 +1,4 @@
-import { ImageDownloader } from '../';
+const { ImageDownloader } = require('../')
 
 const downloader = new ImageDownloader(__dirname)
 

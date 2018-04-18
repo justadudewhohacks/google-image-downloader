@@ -57,8 +57,8 @@ var ImageDownloader = /** @class */ (function () {
                 });
             }
             var file = filename + "." + extension;
-            _this.fileHandler.writeImage(file, res.body);
-            return Promise.resolve(file);
+            return _this.fileHandler.writeImage(file, res.body)
+                .then(function () { return filename; });
         });
     };
     ImageDownloader.prototype.downloadImages = function (query, maxImages) {
@@ -76,7 +76,8 @@ var ImageDownloader = /** @class */ (function () {
                 console.log('download successful for uri:', uri);
                 console.log('saved as filename:', file);
                 addIndex(_this.index, query, uri, file);
-                _this.fileHandler.persistIndexFile(_this.index);
+                return _this.fileHandler.persistIndexFile(_this.index)
+                    .catch(function (err) { return console.log(err); });
             })
                 .catch(function (_a) {
                 var error = _a.error, message = _a.message;

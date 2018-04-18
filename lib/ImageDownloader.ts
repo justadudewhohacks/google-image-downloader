@@ -77,7 +77,7 @@ export class ImageDownloader {
 
       const file = `${filename}.${extension}`
       return this.fileHandler.writeImage(file, res.body)
-        .then(() => filename)
+        .then(() => file)
     })
   }
 

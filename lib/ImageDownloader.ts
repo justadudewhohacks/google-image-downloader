@@ -76,8 +76,8 @@ export class ImageDownloader {
       }
 
       const file = `${filename}.${extension}`
-      this.fileHandler.writeImage(file, res.body)
-      return Promise.resolve(file)
+      return this.fileHandler.writeImage(file, res.body)
+        .then(() => filename)
     })
   }
 
@@ -104,7 +104,8 @@ export class ImageDownloader {
                 console.log('download successful for uri:', uri)
                 console.log('saved as filename:', file)
                 addIndex(this.index, query, uri, file)
-                this.fileHandler.persistIndexFile(this.index)
+                return this.fileHandler.persistIndexFile(this.index)
+                  .catch(err => console.log(err))
               })
               .catch(({ error, message}) => {
                 console.log(error)

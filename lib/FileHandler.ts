@@ -18,24 +18,47 @@ export class FileHandler {
     return path.resolve(this.rootDir, 'output', 'index.json')
   }
 
+  readIndexFile() {
+    return fs.existsSync(this.getIndexFilePath())
+      ? JSON.parse(fs.readFileSync(this.getIndexFilePath()).toString())
+      : {}
+  }
+
   initOutputDir() {
     this.initFileOrDir(path.resolve(this.rootDir, 'output'))
     this.initFileOrDir(this.getImagesDirPath())
 
-    return fs.existsSync(this.getIndexFilePath())
-      ? JSON.parse(fs.readFileSync(this.getIndexFilePath()).toString())
-      : {}
+    return this.readIndexFile()
   }
 
   getImagesDirPath() {
     return path.resolve(this.rootDir, 'output', 'images')
   }
 
-  persistIndexFile(index: any) {
-    fs.writeFileSync(this.getIndexFilePath(), JSON.stringify(index))
+  persistIndexFile(index: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      fs.writeFile(this.getIndexFilePath(), JSON.stringify(index), (err: Error) => {
+        if (err) return reject(err)
+        return resolve()
+      })
+    })
   }
 
-  writeImage(filename: string, imgData: string) {
-    fs.writeFileSync(path.resolve(this.getImagesDirPath(), filename), imgData)
+  writeImage(filename: string, imgData: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      fs.writeFile(path.resolve(this.getImagesDirPath(), filename), imgData, (err: Error) => {
+        if (err) return reject(err)
+        return resolve()
+      })
+    })
+  }
+
+  readImage(filename: string): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      fs.readFile(path.resolve(this.getImagesDirPath(), filename), (err: Error, data: Buffer) => {
+        if (err) return reject(err)
+        return resolve(data)
+      })
+    })
   }
 }

@@ -1,22 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs = require("fs");
+var _fs = require("fs");
 var path = require("path");
+var fs = require("./fsPromised");
 var FileHandler = /** @class */ (function () {
     function FileHandler(rootDir) {
         this.rootDir = rootDir;
     }
     FileHandler.prototype.initFileOrDir = function (dir) {
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-        }
+        return !_fs.existsSync(dir) && _fs.mkdirSync(dir);
+    };
+    FileHandler.prototype.getOutputDirPath = function () {
+        return path.resolve(this.rootDir, 'output');
     };
     FileHandler.prototype.getIndexFilePath = function () {
-        return path.resolve(this.rootDir, 'output', 'index.json');
+        return path.resolve(this.getOutputDirPath(), 'index.json');
+    };
+    FileHandler.prototype.getImagesDirPath = function () {
+        return path.resolve(this.getOutputDirPath(), 'images');
     };
     FileHandler.prototype.readIndexFile = function () {
-        return fs.existsSync(this.getIndexFilePath())
-            ? JSON.parse(fs.readFileSync(this.getIndexFilePath()).toString())
+        return _fs.existsSync(this.getIndexFilePath())
+            ? JSON.parse(_fs.readFileSync(this.getIndexFilePath()).toString())
             : {};
     };
     FileHandler.prototype.initOutputDir = function () {
@@ -24,38 +29,14 @@ var FileHandler = /** @class */ (function () {
         this.initFileOrDir(this.getImagesDirPath());
         return this.readIndexFile();
     };
-    FileHandler.prototype.getImagesDirPath = function () {
-        return path.resolve(this.rootDir, 'output', 'images');
-    };
     FileHandler.prototype.persistIndexFile = function (index) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            fs.writeFile(_this.getIndexFilePath(), JSON.stringify(index), function (err) {
-                if (err)
-                    return reject(err);
-                return resolve();
-            });
-        });
+        return fs.writeFile(this.getIndexFilePath(), JSON.stringify(index));
     };
     FileHandler.prototype.writeImage = function (filename, imgData) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            fs.writeFile(path.resolve(_this.getImagesDirPath(), filename), imgData, function (err) {
-                if (err)
-                    return reject(err);
-                return resolve();
-            });
-        });
+        return fs.writeFile(path.resolve(this.getImagesDirPath(), filename), imgData);
     };
     FileHandler.prototype.readImage = function (filename) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            fs.readFile(path.resolve(_this.getImagesDirPath(), filename), function (err, data) {
-                if (err)
-                    return reject(err);
-                return resolve(data);
-            });
-        });
+        return fs.readFile(path.resolve(this.getImagesDirPath(), filename));
     };
     return FileHandler;
 }());

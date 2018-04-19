@@ -1,5 +1,7 @@
-import * as fs from 'fs';
+import * as _fs from 'fs';
 import * as path from 'path';
+
+import * as fs from './fsPromised';
 
 export class FileHandler {
   rootDir: string
@@ -9,18 +11,24 @@ export class FileHandler {
   }
 
   initFileOrDir(dir: string) {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir)
-    }
+    return !_fs.existsSync(dir) && _fs.mkdirSync(dir)
+  }
+
+  getOutputDirPath() {
+    return path.resolve(this.rootDir, 'output')
   }
 
   getIndexFilePath() {
-    return path.resolve(this.rootDir, 'output', 'index.json')
+    return path.resolve(this.getOutputDirPath(), 'index.json')
+  }
+
+  getImagesDirPath() {
+    return path.resolve(this.getOutputDirPath(), 'images')
   }
 
   readIndexFile() {
-    return fs.existsSync(this.getIndexFilePath())
-      ? JSON.parse(fs.readFileSync(this.getIndexFilePath()).toString())
+    return _fs.existsSync(this.getIndexFilePath())
+      ? JSON.parse(_fs.readFileSync(this.getIndexFilePath()).toString())
       : {}
   }
 
@@ -31,34 +39,15 @@ export class FileHandler {
     return this.readIndexFile()
   }
 
-  getImagesDirPath() {
-    return path.resolve(this.rootDir, 'output', 'images')
-  }
-
   persistIndexFile(index: any): Promise<void> {
-    return new Promise((resolve, reject) => {
-      fs.writeFile(this.getIndexFilePath(), JSON.stringify(index), (err: Error) => {
-        if (err) return reject(err)
-        return resolve()
-      })
-    })
+    return fs.writeFile(this.getIndexFilePath(), JSON.stringify(index))
   }
 
   writeImage(filename: string, imgData: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      fs.writeFile(path.resolve(this.getImagesDirPath(), filename), imgData, (err: Error) => {
-        if (err) return reject(err)
-        return resolve()
-      })
-    })
+    return fs.writeFile(path.resolve(this.getImagesDirPath(), filename), imgData)
   }
 
   readImage(filename: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      fs.readFile(path.resolve(this.getImagesDirPath(), filename), (err: Error, data: Buffer) => {
-        if (err) return reject(err)
-        return resolve(data)
-      })
-    })
+    return fs.readFile(path.resolve(this.getImagesDirPath(), filename))
   }
 }

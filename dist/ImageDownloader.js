@@ -58,7 +58,7 @@ var ImageDownloader = /** @class */ (function () {
             }
             var file = filename + "." + extension;
             return _this.fileHandler.writeImage(file, res.body)
-                .then(function () { return filename; });
+                .then(function () { return file; });
         });
     };
     ImageDownloader.prototype.downloadImages = function (query, maxImages) {

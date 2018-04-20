@@ -2,38 +2,32 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var cheerio = require("cheerio");
 var fs = require("fs");
-var md5 = require("md5");
 var path = require("path");
 var FileHandler_1 = require("./FileHandler");
 var request_1 = require("./request");
-var extensions = ['png', 'jpeg', 'jpg'];
-function extractFilenameAndExtensionFromUri(uri) {
-    function tryFileExtension(ext) {
-        var pieces = uri.split(new RegExp(ext, 'i'));
-        return pieces.length > 1
-            ? { filename: "" + md5(pieces[0]), ext: ext }
-            : null;
-    }
-    return extensions
-        .map(function (ext) { return tryFileExtension(ext); })
-        .find(function (ext) { return !!ext; })
-        || { filename: md5(uri) };
-}
-function addIndex(index, query, uri, file) {
-    var entryForQuery = index[query] || [];
-    if (!entryForQuery.some(function (q) { return q.uri === uri; })) {
-        index[query] = entryForQuery.concat({ uri: uri, file: file });
-    }
-}
+var helpers_1 = require("./helpers");
 var ImageDownloader = /** @class */ (function () {
-    function ImageDownloader(dirname) {
+    function ImageDownloader(dirname, isLoggingEnabled, writeIndexFile) {
+        if (isLoggingEnabled === void 0) { isLoggingEnabled = true; }
+        if (writeIndexFile === void 0) { writeIndexFile = true; }
         this.fileHandler = new FileHandler_1.FileHandler(path.resolve(dirname));
         this.index = this.fileHandler.initOutputDir();
+        this.isLoggingEnabled = isLoggingEnabled;
+        this.writeIndexFile = writeIndexFile;
     }
+    ImageDownloader.prototype.log = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (this.isLoggingEnabled) {
+            console.log.apply(console, args);
+        }
+    };
     ImageDownloader.prototype.haveImage = function (uri) {
         var _this = this;
-        var filename = extractFilenameAndExtensionFromUri(uri).filename;
-        return extensions.some(function (ext) { return fs.existsSync(path.resolve(_this.fileHandler.getImagesDirPath(), filename + "." + ext)); });
+        var filename = helpers_1.extractFilenameAndExtensionFromUri(uri).filename;
+        return helpers_1.EXTENSIONS.some(function (ext) { return fs.existsSync(path.resolve(_this.fileHandler.getImagesDirPath(), filename + "." + ext)); });
     };
     ImageDownloader.prototype.downloadImage = function (uri) {
         var _this = this;
@@ -44,9 +38,9 @@ var ImageDownloader = /** @class */ (function () {
                     message: res.toString()
                 });
             }
-            var _a = extractFilenameAndExtensionFromUri(uri), filename = _a.filename, _b = _a.ext, ext = _b === void 0 ? null : _b;
+            var _a = helpers_1.extractFilenameAndExtensionFromUri(uri), filename = _a.filename, _b = _a.ext, ext = _b === void 0 ? null : _b;
             var contentType = res.headers['content-type'];
-            var extension = extensions
+            var extension = helpers_1.EXTENSIONS
                 .map(function (ext) { return ((contentType || '').match(new RegExp(ext, 'i')) || [])[0]; })
                 .find(function (ext) { return !!ext; })
                 || ext;
@@ -69,20 +63,26 @@ var ImageDownloader = /** @class */ (function () {
             var imgUris = Array.from($('div.rg_meta').map(function (_, el) { return JSON.parse((el.children[0].data || '')).ou; }));
             var newImgUris = imgUris.filter(function (uri) { return !_this.haveImage(uri); }).slice(0, maxImages);
             if (maxImages - newImgUris.length) {
-                console.log('%s of %s images are already downloaded:', maxImages - newImgUris.length, maxImages);
+                _this.log('%s of %s images are already downloaded:', maxImages - newImgUris.length, maxImages);
             }
             return Promise.all(newImgUris.map(function (uri) { return _this.downloadImage(uri)
-                .then(function (file) {
-                console.log('download successful for uri:', uri);
-                console.log('saved as filename:', file);
-                addIndex(_this.index, query, uri, file);
-                return _this.fileHandler.persistIndexFile(_this.index)
-                    .catch(function (err) { return console.log(err); });
+                .then(function (filename) {
+                _this.log('download successful for uri:', uri);
+                _this.log('saved as filename:', filename);
+                var result = { uri: uri, filename: filename };
+                if (_this.writeIndexFile) {
+                    helpers_1.addIndex(_this.index, query, uri, filename);
+                    _this.fileHandler.persistIndexFile(_this.index)
+                        .then(function () { return result; })
+                        .catch(function (err) { return _this.log(err); });
+                }
+                return result;
             })
                 .catch(function (_a) {
                 var error = _a.error, message = _a.message;
-                console.log(error);
-                console.log(message);
+                _this.log(error);
+                _this.log(message);
+                return { uri: uri, error: error, message: message };
             }); }));
         });
     };

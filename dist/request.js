@@ -1,13 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var request = require("request");
-function req(url, returnBuffer) {
+function req(url, returnBuffer, timeout) {
     if (returnBuffer === void 0) { returnBuffer = false; }
+    if (timeout === void 0) { timeout = 10000; }
     return new Promise(function (resolve, reject) {
         var options = Object.assign({}, {
             url: url,
             isBuffer: true,
-            timeout: 10000,
+            timeout: timeout,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
             }
@@ -20,9 +21,10 @@ function req(url, returnBuffer) {
     });
 }
 exports.req = req;
-function reqResolve(url, returnBuffer) {
+function reqResolve(url, returnBuffer, timeout) {
     if (returnBuffer === void 0) { returnBuffer = false; }
-    return req(url, returnBuffer).catch(function (err) { return Promise.resolve(new Error(err)); });
+    if (timeout === void 0) { timeout = 10000; }
+    return req(url, returnBuffer, timeout).catch(function (err) { return Promise.resolve(new Error(err)); });
 }
 exports.reqResolve = reqResolve;
 //# sourceMappingURL=request.js.map

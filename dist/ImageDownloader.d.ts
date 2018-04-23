@@ -12,7 +12,8 @@ export declare class ImageDownloader {
     writeIndexFile: boolean;
     constructor(dirname: string, isLoggingEnabled?: boolean, writeIndexFile?: boolean);
     log(...args: any[]): void;
-    haveImage(uri: string): boolean;
-    downloadImage(uri: string): Promise<string>;
-    downloadImages(query: string, maxImages: number): Promise<DownloadResult[]>;
+    haveImage(filename: string, _: string, __: string): Promise<boolean>;
+    getNewImageUris(imgUris: string[], query: string): Promise<string[]>;
+    downloadImage(uri: string, timeout?: number): Promise<string>;
+    downloadImages(query: string, maxImages: number, timeout?: number): Promise<DownloadResult[]>;
 }
